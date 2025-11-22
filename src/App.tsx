@@ -8,8 +8,8 @@ function App() {
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
-      <Hero />
       <LookupSection onLookup={lookupVehicle} />
+      <Hero />
       <Footer />
     </div>
   );
