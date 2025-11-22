@@ -1,0 +1,5 @@
+- [ ] Delete project/server/ folder
+- [ ] Create project/src/services/vehicleServices.ts with decodeVIN, lookupPlate, getVehicleHistory functions
+- [ ] Update project/src/api/vehicleApi.ts to call local services
+- [ ] Update project/package.json scripts (change dev to vite, remove server scripts)
+- [ ] Test the frontend app to ensure lookups work
