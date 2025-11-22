@@ -29,14 +29,18 @@ Deno.serve(async (req: Request) => {
     const spreadsheetId = Deno.env.get("GOOGLE_SHEETS_SPREADSHEET_ID");
 
     if (!serviceAccountJson || !spreadsheetId) {
-      console.error("Missing configuration:", {
+      const errorMessage = "Google Sheets configuration missing";
+      console.error(errorMessage, {
         hasServiceAccount: !!serviceAccountJson,
         hasSpreadsheetId: !!spreadsheetId,
+        timestamp: new Date().toISOString(),
       });
       return new Response(
         JSON.stringify({
-          error: "Google Sheets configuration missing",
-          details: "Please configure GOOGLE_SERVICE_ACCOUNT_JSON and GOOGLE_SHEETS_SPREADSHEET_ID"
+          success: false,
+          error: errorMessage,
+          details: "Please configure GOOGLE_SERVICE_ACCOUNT_JSON and GOOGLE_SHEETS_SPREADSHEET_ID",
+          timestamp: new Date().toISOString(),
         }),
         {
           status: 500,
@@ -66,7 +70,34 @@ Deno.serve(async (req: Request) => {
       part,
     ];
 
-    const serviceAccount = JSON.parse(serviceAccountJson);
+    console.log("Preparing to save data:", {
+      row,
+      spreadsheetId: spreadsheetId.substring(0, 10) + "...",
+      timestamp: new Date().toISOString(),
+    });
+
+    let serviceAccount;
+    try {
+      serviceAccount = JSON.parse(serviceAccountJson);
+    } catch (parseError) {
+      const errorMessage = "Failed to parse service account JSON";
+      console.error(errorMessage, {
+        error: parseError.message,
+        timestamp: new Date().toISOString(),
+      });
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: errorMessage,
+          details: parseError.message,
+          timestamp: new Date().toISOString(),
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
 
     const now = Math.floor(Date.now() / 1000);
     const jwtHeader = { alg: "RS256", typ: "JWT" };
@@ -90,33 +121,96 @@ Deno.serve(async (req: Request) => {
     const signatureInput = `${headerEncoded}.${claimSetEncoded}`;
 
     const privateKeyPem = serviceAccount.private_key;
+    if (!privateKeyPem) {
+      const errorMessage = "Private key missing from service account";
+      console.error(errorMessage, {
+        timestamp: new Date().toISOString(),
+      });
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: errorMessage,
+          details: "Service account JSON is missing private_key field",
+          timestamp: new Date().toISOString(),
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
     const pemContents = privateKeyPem
       .replace(/-----BEGIN PRIVATE KEY-----/, "")
       .replace(/-----END PRIVATE KEY-----/, "")
       .replace(/\s/g, "");
 
-    const binaryKey = Uint8Array.from(atob(pemContents), (c) => c.charCodeAt(0));
+    let binaryKey;
+    let cryptoKey;
+    try {
+      binaryKey = Uint8Array.from(atob(pemContents), (c) => c.charCodeAt(0));
+      cryptoKey = await crypto.subtle.importKey(
+        "pkcs8",
+        binaryKey,
+        {
+          name: "RSASSA-PKCS1-v1_5",
+          hash: "SHA-256",
+        },
+        false,
+        ["sign"]
+      );
+    } catch (keyError) {
+      const errorMessage = "Failed to import private key";
+      console.error(errorMessage, {
+        error: keyError.message,
+        timestamp: new Date().toISOString(),
+      });
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: errorMessage,
+          details: keyError.message,
+          timestamp: new Date().toISOString(),
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
 
-    const cryptoKey = await crypto.subtle.importKey(
-      "pkcs8",
-      binaryKey,
-      {
-        name: "RSASSA-PKCS1-v1_5",
-        hash: "SHA-256",
-      },
-      false,
-      ["sign"]
-    );
-
-    const signatureBuffer = await crypto.subtle.sign(
-      "RSASSA-PKCS1-v1_5",
-      cryptoKey,
-      new TextEncoder().encode(signatureInput)
-    );
+    let signatureBuffer;
+    try {
+      signatureBuffer = await crypto.subtle.sign(
+        "RSASSA-PKCS1-v1_5",
+        cryptoKey,
+        new TextEncoder().encode(signatureInput)
+      );
+    } catch (signError) {
+      const errorMessage = "Failed to sign JWT";
+      console.error(errorMessage, {
+        error: signError.message,
+        timestamp: new Date().toISOString(),
+      });
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: errorMessage,
+          details: signError.message,
+          timestamp: new Date().toISOString(),
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
 
     const signatureArray = Array.from(new Uint8Array(signatureBuffer));
     const signatureBase64 = base64url(String.fromCharCode(...signatureArray));
     const jwt = `${signatureInput}.${signatureBase64}`;
+
+    console.log("JWT generated successfully, exchanging for access token...");
 
     const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST",
@@ -131,9 +225,20 @@ Deno.serve(async (req: Request) => {
 
     if (!tokenResponse.ok) {
       const errorText = await tokenResponse.text();
-      console.error("Token error:", errorText);
+      const errorMessage = "Failed to get OAuth2 access token";
+      console.error(errorMessage, {
+        status: tokenResponse.status,
+        statusText: tokenResponse.statusText,
+        error: errorText,
+        timestamp: new Date().toISOString(),
+      });
       return new Response(
-        JSON.stringify({ error: "Failed to get access token", details: errorText }),
+        JSON.stringify({
+          success: false,
+          error: errorMessage,
+          details: `Status ${tokenResponse.status}: ${errorText}`,
+          timestamp: new Date().toISOString(),
+        }),
         {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -141,7 +246,50 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const { access_token } = await tokenResponse.json();
+    let tokenData;
+    try {
+      tokenData = await tokenResponse.json();
+    } catch (jsonError) {
+      const errorMessage = "Failed to parse OAuth2 token response";
+      console.error(errorMessage, {
+        error: jsonError.message,
+        timestamp: new Date().toISOString(),
+      });
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: errorMessage,
+          details: jsonError.message,
+          timestamp: new Date().toISOString(),
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    const { access_token } = tokenData;
+    if (!access_token) {
+      const errorMessage = "Access token not found in response";
+      console.error(errorMessage, {
+        timestamp: new Date().toISOString(),
+      });
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: errorMessage,
+          details: "OAuth2 response did not contain access_token",
+          timestamp: new Date().toISOString(),
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    console.log("Access token obtained successfully, appending to Google Sheets...");
 
     const appendUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Sheet1!A:G:append?valueInputOption=USER_ENTERED`;
 
@@ -158,9 +306,31 @@ Deno.serve(async (req: Request) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Google Sheets API error:", errorText);
+      const errorMessage = "Failed to append data to Google Sheets";
+      console.error(errorMessage, {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorText,
+        spreadsheetId,
+        range: "Sheet1!A:G",
+        timestamp: new Date().toISOString(),
+      });
+
+      let errorDetails = `Status ${response.status}: ${errorText}`;
+      if (response.status === 403) {
+        errorDetails += " - Check that the service account has edit access to the spreadsheet";
+      } else if (response.status === 404) {
+        errorDetails += " - Check that the spreadsheet ID is correct and the sheet exists";
+      }
+
       return new Response(
-        JSON.stringify({ error: "Failed to save to Google Sheets", details: errorText }),
+        JSON.stringify({
+          success: false,
+          error: errorMessage,
+          details: errorDetails,
+          status: response.status,
+          timestamp: new Date().toISOString(),
+        }),
         {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -168,18 +338,69 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const result = await response.json();
+    let result;
+    try {
+      result = await response.json();
+    } catch (jsonError) {
+      const errorMessage = "Failed to parse Google Sheets response";
+      console.error(errorMessage, {
+        error: jsonError.message,
+        timestamp: new Date().toISOString(),
+      });
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: errorMessage,
+          details: jsonError.message,
+          timestamp: new Date().toISOString(),
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    console.log("Data successfully appended to Google Sheets:", {
+      updatedRange: result.updates?.updatedRange,
+      updatedRows: result.updates?.updatedRows,
+      updatedColumns: result.updates?.updatedColumns,
+      updatedCells: result.updates?.updatedCells,
+      timestamp: new Date().toISOString(),
+    });
 
     return new Response(
-      JSON.stringify({ success: true, result }),
+      JSON.stringify({
+        success: true,
+        message: "Data successfully saved to Google Sheets",
+        result: {
+          updatedRange: result.updates?.updatedRange,
+          updatedRows: result.updates?.updatedRows,
+          updatedColumns: result.updates?.updatedColumns,
+          updatedCells: result.updates?.updatedCells,
+        },
+        timestamp: new Date().toISOString(),
+      }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
   } catch (error) {
-    console.error("Error:", error);
+    const errorMessage = "Unexpected error while saving to Google Sheets";
+    console.error(errorMessage, {
+      error: error.message,
+      stack: error.stack,
+      name: error.name,
+      timestamp: new Date().toISOString(),
+    });
     return new Response(
-      JSON.stringify({ error: error.message || "Internal server error" }),
+      JSON.stringify({
+        success: false,
+        error: errorMessage,
+        details: error.message || "Internal server error",
+        errorType: error.name,
+        timestamp: new Date().toISOString(),
+      }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
