@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, Suspense, lazy } from 'react';
-import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion';
+import { motion, useScroll, useTransform, useReducedMotion, MotionValue } from 'framer-motion';
 import { useInView } from 'framer-motion';
 
 const Engine3DModel = lazy(() => import('./Engine3DModel'));
@@ -38,7 +38,7 @@ export default function EngineScrollHero({
   return (
     <section
       ref={containerRef}
-      className="relative bg-black text-white overflow-hidden"
+      className="relative bg-gradient-to-b from-black via-gray-950 to-black text-white overflow-hidden"
       style={{ minHeight: `${items.length * 100}vh` }}
     >
       <div className="sticky top-0 h-screen flex items-center justify-center">
@@ -66,7 +66,7 @@ interface EngineRevealItemProps {
   index: number;
   totalItems: number;
   staggerDelay: number;
-  scrollProgress: any;
+  scrollProgress: MotionValue<number>;
   shouldReduceMotion: boolean;
   autoplay: boolean;
 }
@@ -90,26 +90,32 @@ function EngineRevealItem({
 
   const opacity = useTransform(
     scrollProgress,
-    [startProgress, startProgress + 0.1, endProgress - 0.1, endProgress],
-    [0, 1, 1, 0]
+    [startProgress - 0.05, startProgress + 0.08, startProgress + 0.15, endProgress - 0.1, endProgress],
+    [0, 0.5, 1, 1, 0]
   );
 
   const scale = useTransform(
     scrollProgress,
-    [startProgress, startProgress + 0.1, endProgress - 0.1, endProgress],
-    [0.95, 1, 1, 0.95]
+    [startProgress - 0.05, startProgress + 0.08, startProgress + 0.15, endProgress - 0.1, endProgress],
+    [0.92, 0.98, 1.02, 1, 0.95]
   );
 
   const y = useTransform(
     scrollProgress,
-    [startProgress, startProgress + 0.1, endProgress - 0.1, endProgress],
-    [20, 0, 0, -20]
+    [startProgress - 0.05, startProgress + 0.08, startProgress + 0.15, endProgress - 0.1, endProgress],
+    [50, 10, 0, 0, -30]
   );
 
   const rotateY = useTransform(
     scrollProgress,
-    [startProgress, startProgress + 0.15],
-    [index % 2 === 0 ? -15 : 15, 0]
+    [startProgress - 0.05, startProgress + 0.12, startProgress + 0.18],
+    [index % 2 === 0 ? -12 : 12, 0, 0]
+  );
+
+  const blur = useTransform(
+    scrollProgress,
+    [startProgress - 0.05, startProgress + 0.08, endProgress - 0.08, endProgress],
+    [8, 0, 0, 5]
   );
 
   useEffect(() => {
@@ -126,9 +132,9 @@ function EngineRevealItem({
   const animationVariants = {
     hidden: {
       opacity: 0,
-      scale: 0.95,
-      y: 20,
-      rotateY: index % 2 === 0 ? -15 : 15
+      scale: 0.92,
+      y: 40,
+      rotateY: index % 2 === 0 ? -12 : 12
     },
     visible: {
       opacity: 1,
@@ -136,7 +142,7 @@ function EngineRevealItem({
       y: 0,
       rotateY: 0,
       transition: {
-        duration: shouldReduceMotion ? 0 : 0.7,
+        duration: shouldReduceMotion ? 0 : 0.8,
         ease: [0.25, 0.1, 0.25, 1]
       }
     }
@@ -148,7 +154,7 @@ function EngineRevealItem({
   return (
     <motion.div
       ref={itemRef}
-      className="absolute inset-0 flex flex-col items-center justify-center"
+      className="absolute inset-0 flex flex-col items-center justify-center perspective-[1000px]"
       style={
         shouldReduceMotion
           ? { opacity: isVisible ? 1 : 0 }
@@ -158,25 +164,34 @@ function EngineRevealItem({
       animate={isVisible ? 'visible' : 'hidden'}
       variants={animationVariants}
     >
-      <div className="relative w-full max-w-4xl aspect-[4/3] mb-8">
+      <div className="relative w-full max-w-5xl aspect-[16/10] mb-12">
         <motion.div
-          className="absolute inset-0 bg-gradient-to-br from-blue-500/20 via-transparent to-purple-500/20 rounded-3xl blur-3xl"
+          className="absolute -inset-8 bg-gradient-to-br from-blue-500/30 via-cyan-400/20 to-blue-600/30 rounded-[4rem] blur-[100px]"
           style={{ rotateY: shouldReduceMotion ? 0 : rotateY }}
           animate={{
-            opacity: isVisible ? [0.3, 0.6, 0.3] : 0
+            opacity: isVisible ? [0.4, 0.7, 0.4] : 0,
+            scale: isVisible ? [1, 1.08, 1] : 1
           }}
           transition={{
-            duration: 3,
+            duration: 4.5,
             repeat: Infinity,
             ease: 'easeInOut'
           }}
         />
 
-        <div
-          className="relative z-10 w-full h-full rounded-3xl overflow-hidden shadow-2xl"
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent rounded-[2.5rem]"
+          style={{ opacity }}
+        />
+
+        <motion.div
+          className="relative z-10 w-full h-full rounded-[2.5rem] overflow-hidden shadow-[0_30px_100px_-20px_rgba(0,0,0,0.7)] ring-1 ring-white/10"
           role="img"
           aria-label={item.altText}
           tabIndex={0}
+          style={{ rotateY: shouldReduceMotion ? 0 : rotateY }}
+          whileHover={{ scale: 1.02 }}
+          transition={{ duration: 0.3 }}
         >
           {item.use3D && supports3D && item.model3D ? (
             <Suspense
@@ -197,19 +212,19 @@ function EngineRevealItem({
               altText={item.altText}
             />
           )}
-        </div>
+        </motion.div>
       </div>
 
       <motion.div
-        className="text-center max-w-2xl px-6"
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 10 }}
-        transition={{ delay: shouldReduceMotion ? 0 : 0.3, duration: 0.5 }}
+        className="text-center max-w-3xl px-6"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 20 }}
+        transition={{ delay: shouldReduceMotion ? 0 : 0.35, duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
       >
-        <h2 className="text-4xl md:text-6xl font-semibold tracking-tight mb-4">
+        <h2 className="text-5xl md:text-7xl font-semibold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-b from-white via-white to-gray-400">
           {item.title}
         </h2>
-        <p className="text-lg md:text-xl text-gray-300 leading-relaxed">
+        <p className="text-xl md:text-2xl text-gray-400 leading-relaxed font-light">
           {item.description}
         </p>
       </motion.div>
@@ -240,9 +255,9 @@ function ImageFallback({ image, imageLQIP, altText }: ImageFallbackProps) {
 
   if (!image && !imageLQIP) {
     return (
-      <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
+      <div className="w-full h-full bg-gradient-to-br from-gray-900 via-gray-950 to-black flex items-center justify-center">
         <svg
-          className="w-32 h-32 text-gray-600"
+          className="w-32 h-32 text-gray-700"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -259,14 +274,17 @@ function ImageFallback({ image, imageLQIP, altText }: ImageFallbackProps) {
   }
 
   return (
-    <img
+    <motion.img
       src={currentSrc}
       alt={altText}
-      className="w-full h-full object-cover transition-all duration-500"
+      className="w-full h-full object-cover"
       style={{
-        filter: imageLoaded ? 'blur(0)' : 'blur(20px)',
+        filter: imageLoaded ? 'blur(0) brightness(1.05) contrast(1.05)' : 'blur(20px)',
         transform: imageLoaded ? 'scale(1)' : 'scale(1.05)'
       }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.8 }}
       loading="lazy"
     />
   );

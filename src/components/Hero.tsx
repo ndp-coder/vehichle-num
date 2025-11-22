@@ -3,39 +3,39 @@ import EngineScrollHero, { EngineItem } from './EngineScrollHero';
 
 const engineItems: EngineItem[] = [
   {
-    id: 'v8-engine',
-    title: 'V8 Power',
-    description: 'Experience the raw power and precision of modern V8 engineering',
-    image: 'https://images.pexels.com/photos/1409999/pexels-photo-1409999.jpeg?auto=compress&cs=tinysrgb&w=1200',
-    imageLQIP: 'https://images.pexels.com/photos/1409999/pexels-photo-1409999.jpeg?auto=compress&cs=tinysrgb&w=50',
-    altText: 'High-performance V8 engine with chrome finish',
+    id: 'v8-chrome-engine',
+    title: 'V8 Performance',
+    description: 'Raw power and precision engineering in perfect harmony',
+    image: 'https://images.pexels.com/photos/210019/pexels-photo-210019.jpeg?auto=compress&cs=tinysrgb&w=1600',
+    imageLQIP: 'https://images.pexels.com/photos/210019/pexels-photo-210019.jpeg?auto=compress&cs=tinysrgb&w=50',
+    altText: 'Close-up of a chrome V8 engine with detailed components',
     use3D: false
   },
   {
-    id: 'turbo-engine',
-    title: 'Turbocharged Performance',
-    description: 'Advanced turbocharging technology delivering maximum efficiency',
-    image: 'https://images.pexels.com/photos/3802508/pexels-photo-3802508.jpeg?auto=compress&cs=tinysrgb&w=1200',
-    imageLQIP: 'https://images.pexels.com/photos/3802508/pexels-photo-3802508.jpeg?auto=compress&cs=tinysrgb&w=50',
-    altText: 'Turbocharged engine with intercooler system',
+    id: 'modern-engine-bay',
+    title: 'Modern Engineering',
+    description: 'Cutting-edge technology meets mechanical excellence',
+    image: 'https://images.pexels.com/photos/279949/pexels-photo-279949.jpeg?auto=compress&cs=tinysrgb&w=1600',
+    imageLQIP: 'https://images.pexels.com/photos/279949/pexels-photo-279949.jpeg?auto=compress&cs=tinysrgb&w=50',
+    altText: 'Modern car engine bay showing advanced automotive engineering',
     use3D: false
   },
   {
-    id: 'electric-motor',
-    title: 'Electric Future',
-    description: 'Silent power meets instant torque in next-gen electric motors',
-    image: 'https://images.pexels.com/photos/6873875/pexels-photo-6873875.jpeg?auto=compress&cs=tinysrgb&w=1200',
-    imageLQIP: 'https://images.pexels.com/photos/6873875/pexels-photo-6873875.jpeg?auto=compress&cs=tinysrgb&w=50',
-    altText: 'Modern electric vehicle motor assembly',
+    id: 'engine-detail',
+    title: 'Precision Mechanics',
+    description: 'Every component crafted for optimal performance',
+    image: 'https://images.pexels.com/photos/190574/pexels-photo-190574.jpeg?auto=compress&cs=tinysrgb&w=1600',
+    imageLQIP: 'https://images.pexels.com/photos/190574/pexels-photo-190574.jpeg?auto=compress&cs=tinysrgb&w=50',
+    altText: 'Detailed view of car engine components and mechanical parts',
     use3D: false
   },
   {
-    id: 'hybrid-system',
-    title: 'Hybrid Innovation',
-    description: 'The perfect balance of combustion and electric power',
-    image: 'https://images.pexels.com/photos/4488666/pexels-photo-4488666.jpeg?auto=compress&cs=tinysrgb&w=1200',
-    imageLQIP: 'https://images.pexels.com/photos/4488666/pexels-photo-4488666.jpeg?auto=compress&cs=tinysrgb&w=50',
-    altText: 'Hybrid engine system showing electric and combustion components',
+    id: 'performance-engine',
+    title: 'High Performance',
+    description: 'Built for speed, designed for reliability',
+    image: 'https://images.pexels.com/photos/13861/IMG_3496bfreeCC.jpg?auto=compress&cs=tinysrgb&w=1600',
+    imageLQIP: 'https://images.pexels.com/photos/13861/IMG_3496bfreeCC.jpg?auto=compress&cs=tinysrgb&w=50',
+    altText: 'High-performance car engine with custom modifications',
     use3D: false
   }
 ];
