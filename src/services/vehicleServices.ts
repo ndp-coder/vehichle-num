@@ -3,9 +3,12 @@ import { NHTSAResult, VehicleData, HistoryData } from '../types';
 
 export async function decodeVIN(vin: string): Promise<VehicleData> {
   try {
-    const response = await axios.get<NHTSAResult>(
-      `https://vpic.nhtsa.dot.gov/api/vehicles/decodevin/${vin}?format=json`
-    );
+    console.log('🚗 Calling NHTSA API for VIN:', vin);
+    const apiUrl = `https://vpic.nhtsa.dot.gov/api/vehicles/decodevin/${vin}?format=json`;
+    console.log('�� API URL:', apiUrl);
+
+    const response = await axios.get<NHTSAResult>(apiUrl);
+    console.log('✅ API Response received:', response.data);
 
     const results = response.data.Results;
     const errors = results
@@ -35,9 +38,10 @@ export async function decodeVIN(vin: string): Promise<VehicleData> {
       errors: errors
     };
 
+    console.log('🎯 Decoded vehicle data:', vehicleData);
     return vehicleData;
   } catch (error: unknown) {
-    console.error('NHTSA API Error:', error instanceof Error ? error.message : String(error));
+    console.error('❌ NHTSA API Error:', error instanceof Error ? error.message : String(error));
     throw new Error('Failed to decode VIN. Please check the VIN and try again.');
   }
 }
