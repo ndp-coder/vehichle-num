@@ -1,85 +1,55 @@
-import { google } from 'googleapis';
 import type { VehicleResultsData } from '../types';
 
-interface SheetsConfig {
-  apiKey: string;
-  spreadsheetId: string;
-}
+export const saveVehicleData = async (data: VehicleResultsData, mobileNumber: string): Promise<void> => {
+  const vehicle = data.vehicle;
+  const history = data.history;
+  const plate = data.plate;
 
-export class GoogleSheetsService {
-  private sheets;
-  private spreadsheetId: string;
+  const row = [
+    plate?.owner || '',
+    vehicle?.vin || plate?.vin || '',
+    vehicle?.make || plate?.make || '',
+    vehicle?.model || plate?.model || '',
+    vehicle?.year || plate?.year || '',
+    vehicle?.bodyClass || '',
+    vehicle?.vehicleType || '',
+    vehicle?.manufacturer || '',
+    vehicle?.fuelType || '',
+    vehicle?.engineCylinders || '',
+    vehicle?.displacement || '',
+    vehicle?.transmission || '',
+    vehicle?.driveType || '',
+    history?.accidents?.reported?.toString() || '0',
+    history?.ownershipHistory?.owners?.toString() || 'N/A',
+    history?.odometer?.lastReading?.toString() || 'N/A',
+    history?.serviceRecords?.count?.toString() || '0',
+    history?.recalls?.open?.toString() || '0',
+    mobileNumber,
+  ];
 
-  constructor(config: SheetsConfig) {
-    this.sheets = google.sheets({
-      version: 'v4',
-      auth: config.apiKey,
-    });
-    this.spreadsheetId = config.spreadsheetId;
+  const apiKey = import.meta.env.VITE_GOOGLE_SHEETS_API_KEY;
+  const spreadsheetId = import.meta.env.VITE_GOOGLE_SHEETS_SPREADSHEET_ID;
+
+  if (!apiKey || !spreadsheetId) {
+    console.error('Google Sheets configuration missing');
+    throw new Error('Google Sheets not configured');
   }
 
-  async appendVehicleData(data: VehicleResultsData, mobileNumber: string): Promise<void> {
-    const row = this.formatDataForSheet(data, mobileNumber);
+  const appendUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Sheet1!A:S:append?valueInputOption=USER_ENTERED&key=${apiKey}`;
 
-    await this.sheets.spreadsheets.values.append({
-      spreadsheetId: this.spreadsheetId,
-      range: 'Sheet1!A:S',
-      valueInputOption: 'USER_ENTERED',
-      requestBody: {
-        values: [row],
-      },
-    });
+  const response = await fetch(appendUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      values: [row],
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('Google Sheets API error:', errorText);
+    throw new Error('Failed to save to Google Sheets');
   }
-
-  private formatDataForSheet(data: VehicleResultsData, mobileNumber: string): string[] {
-    const vehicle = data.vehicle;
-    const history = data.history;
-    const plate = data.plate;
-
-    const name = plate?.owner || '';
-    const vin = vehicle?.vin || plate?.vin || '';
-    const make = vehicle?.make || plate?.make || '';
-    const model = vehicle?.model || plate?.model || '';
-    const year = vehicle?.year || plate?.year || '';
-    const bodyClass = vehicle?.bodyClass || '';
-    const vehicleType = vehicle?.vehicleType || '';
-    const manufacturer = vehicle?.manufacturer || '';
-    const fuelType = vehicle?.fuelType || '';
-    const engineCylinders = vehicle?.engineCylinders || '';
-    const displacement = vehicle?.displacement || '';
-    const transmission = vehicle?.transmission || '';
-    const driveType = vehicle?.driveType || '';
-
-    const accidents = history?.accidents?.reported?.toString() || '0';
-    const ownership = history?.ownershipHistory?.owners?.toString() || 'N/A';
-    const odometer = history?.odometer?.lastReading?.toString() || 'N/A';
-    const serviceRecords = history?.serviceRecords?.count?.toString() || '0';
-    const recalls = history?.recalls?.open?.toString() || '0';
-
-    return [
-      name,
-      vin,
-      make,
-      model,
-      year,
-      bodyClass,
-      vehicleType,
-      manufacturer,
-      fuelType,
-      engineCylinders,
-      displacement,
-      transmission,
-      driveType,
-      accidents,
-      ownership,
-      odometer,
-      serviceRecords,
-      recalls,
-      mobileNumber,
-    ];
-  }
-}
-
-export const createGoogleSheetsService = (apiKey: string, spreadsheetId: string) => {
-  return new GoogleSheetsService({ apiKey, spreadsheetId });
 };
