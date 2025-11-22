@@ -67,12 +67,19 @@ Deno.serve(async (req: Request) => {
   try {
     const { vehicleData, mobileNumber }: RequestBody = await req.json();
 
-    const googleApiKey = Deno.env.get("GOOGLE_SHEETS_API_KEY");
+    const googleServiceAccountJson = Deno.env.get("GOOGLE_SERVICE_ACCOUNT_JSON");
     const spreadsheetId = Deno.env.get("GOOGLE_SHEETS_SPREADSHEET_ID");
 
-    if (!googleApiKey || !spreadsheetId) {
+    if (!googleServiceAccountJson || !spreadsheetId) {
+      console.error("Missing configuration:", {
+        hasServiceAccount: !!googleServiceAccountJson,
+        hasSpreadsheetId: !!spreadsheetId,
+      });
       return new Response(
-        JSON.stringify({ error: "Google Sheets configuration missing" }),
+        JSON.stringify({ 
+          error: "Google Sheets configuration missing",
+          details: "Please configure GOOGLE_SERVICE_ACCOUNT_JSON and GOOGLE_SHEETS_SPREADSHEET_ID secrets"
+        }),
         {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -126,12 +133,90 @@ Deno.serve(async (req: Request) => {
       mobileNumber,
     ];
 
-    const appendUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Sheet1!A:S:append?valueInputOption=USER_ENTERED&key=${googleApiKey}`;
+    const serviceAccount = JSON.parse(googleServiceAccountJson);
+
+    const now = Math.floor(Date.now() / 1000);
+    const jwtHeader = { alg: "RS256", typ: "JWT" };
+    const jwtClaimSet = {
+      iss: serviceAccount.client_email,
+      scope: "https://www.googleapis.com/auth/spreadsheets",
+      aud: "https://oauth2.googleapis.com/token",
+      exp: now + 3600,
+      iat: now,
+    };
+
+    const base64url = (input: string) => {
+      return btoa(input)
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/, "");
+    };
+
+    const headerEncoded = base64url(JSON.stringify(jwtHeader));
+    const claimSetEncoded = base64url(JSON.stringify(jwtClaimSet));
+    const signatureInput = `${headerEncoded}.${claimSetEncoded}`;
+
+    const privateKeyPem = serviceAccount.private_key;
+    const pemContents = privateKeyPem
+      .replace(/-----BEGIN PRIVATE KEY-----/, "")
+      .replace(/-----END PRIVATE KEY-----/, "")
+      .replace(/\s/g, "");
+
+    const binaryKey = Uint8Array.from(atob(pemContents), (c) => c.charCodeAt(0));
+
+    const cryptoKey = await crypto.subtle.importKey(
+      "pkcs8",
+      binaryKey,
+      {
+        name: "RSASSA-PKCS1-v1_5",
+        hash: "SHA-256",
+      },
+      false,
+      ["sign"]
+    );
+
+    const signatureBuffer = await crypto.subtle.sign(
+      "RSASSA-PKCS1-v1_5",
+      cryptoKey,
+      new TextEncoder().encode(signatureInput)
+    );
+
+    const signatureArray = Array.from(new Uint8Array(signatureBuffer));
+    const signatureBase64 = base64url(String.fromCharCode(...signatureArray));
+    const jwt = `${signatureInput}.${signatureBase64}`;
+
+    const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+        assertion: jwt,
+      }),
+    });
+
+    if (!tokenResponse.ok) {
+      const errorText = await tokenResponse.text();
+      console.error("Token error:", errorText);
+      return new Response(
+        JSON.stringify({ error: "Failed to get access token", details: errorText }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    const { access_token } = await tokenResponse.json();
+
+    const appendUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Sheet1!A:S:append?valueInputOption=USER_ENTERED`;
 
     const response = await fetch(appendUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "Authorization": `Bearer ${access_token}`,
       },
       body: JSON.stringify({
         values: [row],
