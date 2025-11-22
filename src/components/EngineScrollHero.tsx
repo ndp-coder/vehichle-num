@@ -1,8 +1,6 @@
-import { useEffect, useRef, useState, Suspense, lazy } from 'react';
-import { motion, useScroll, useTransform, useReducedMotion, MotionValue } from 'framer-motion';
+import { useEffect, useRef, useState } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { useInView } from 'framer-motion';
-
-const Engine3DModel = lazy(() => import('./Engine3DModel'));
 
 export interface EngineItem {
   id: string;
@@ -10,52 +8,32 @@ export interface EngineItem {
   description: string;
   image?: string;
   imageLQIP?: string;
-  model3D?: string;
   altText: string;
-  use3D?: boolean;
 }
 
 interface EngineScrollHeroProps {
   items: EngineItem[];
-  autoplay?: boolean;
   staggerDelay?: number;
-  itemPadding?: string;
 }
 
 export default function EngineScrollHero({
   items,
-  autoplay = true,
-  staggerDelay = 0.5,
-  itemPadding = '12rem'
+  staggerDelay = 0.3,
 }: EngineScrollHeroProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
   const shouldReduceMotion = useReducedMotion();
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ['start start', 'end end']
-  });
 
   return (
-    <section
-      ref={containerRef}
-      className="relative bg-gradient-to-b from-black via-gray-950 to-black text-white overflow-hidden"
-      style={{ minHeight: `${items.length * 100}vh` }}
-    >
-      <div className="sticky top-0 h-screen flex items-center justify-center">
-        <div className="w-full max-w-7xl mx-auto px-6">
-          {items.map((item, index) => (
-            <EngineRevealItem
-              key={item.id}
-              item={item}
-              index={index}
-              totalItems={items.length}
-              staggerDelay={staggerDelay}
-              scrollProgress={scrollYProgress}
-              shouldReduceMotion={shouldReduceMotion || false}
-              autoplay={autoplay}
-            />
-          ))}
-        </div>
+    <section className="relative bg-gradient-to-b from-black via-gray-900 to-black text-white py-20">
+      <div className="w-full max-w-6xl mx-auto px-6 space-y-32">
+        {items.map((item, index) => (
+          <EngineRevealItem
+            key={item.id}
+            item={item}
+            index={index}
+            staggerDelay={staggerDelay}
+            shouldReduceMotion={shouldReduceMotion || false}
+          />
+        ))}
       </div>
     </section>
   );
@@ -64,167 +42,86 @@ export default function EngineScrollHero({
 interface EngineRevealItemProps {
   item: EngineItem;
   index: number;
-  totalItems: number;
   staggerDelay: number;
-  scrollProgress: MotionValue<number>;
   shouldReduceMotion: boolean;
-  autoplay: boolean;
 }
 
 function EngineRevealItem({
   item,
   index,
-  totalItems,
   staggerDelay,
-  scrollProgress,
   shouldReduceMotion,
-  autoplay
 }: EngineRevealItemProps) {
   const itemRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(itemRef, { once: false, margin: '-20%' });
-  const [hasAnimated, setHasAnimated] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
-
-  const startProgress = index / totalItems;
-  const endProgress = (index + 1) / totalItems;
-
-  const opacity = useTransform(
-    scrollProgress,
-    [startProgress - 0.05, startProgress + 0.08, startProgress + 0.15, endProgress - 0.1, endProgress],
-    [0, 0.5, 1, 1, 0]
-  );
-
-  const scale = useTransform(
-    scrollProgress,
-    [startProgress - 0.05, startProgress + 0.08, startProgress + 0.15, endProgress - 0.1, endProgress],
-    [0.92, 0.98, 1.02, 1, 0.95]
-  );
-
-  const y = useTransform(
-    scrollProgress,
-    [startProgress - 0.05, startProgress + 0.08, startProgress + 0.15, endProgress - 0.1, endProgress],
-    [50, 10, 0, 0, -30]
-  );
-
-  const rotateY = useTransform(
-    scrollProgress,
-    [startProgress - 0.05, startProgress + 0.12, startProgress + 0.18],
-    [index % 2 === 0 ? -12 : 12, 0, 0]
-  );
-
-  const blur = useTransform(
-    scrollProgress,
-    [startProgress - 0.05, startProgress + 0.08, endProgress - 0.08, endProgress],
-    [8, 0, 0, 5]
-  );
-
-  useEffect(() => {
-    if (isInView && !hasAnimated && autoplay) {
-      const timer = setTimeout(() => {
-        setIsVisible(true);
-        setHasAnimated(true);
-      }, index * staggerDelay * 1000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [isInView, hasAnimated, index, staggerDelay, autoplay]);
+  const isInView = useInView(itemRef, { once: true, margin: '-100px' });
 
   const animationVariants = {
     hidden: {
       opacity: 0,
-      scale: 0.92,
-      y: 40,
-      rotateY: index % 2 === 0 ? -12 : 12
+      y: 60,
+      scale: 0.95,
     },
     visible: {
       opacity: 1,
-      scale: 1,
       y: 0,
-      rotateY: 0,
+      scale: 1,
       transition: {
-        duration: shouldReduceMotion ? 0 : 0.8,
-        ease: [0.25, 0.1, 0.25, 1]
+        duration: shouldReduceMotion ? 0 : 0.7,
+        delay: shouldReduceMotion ? 0 : index * staggerDelay,
+        ease: [0.25, 0.1, 0.25, 1],
       }
     }
   };
 
-  const supports3D = typeof window !== 'undefined' &&
-    window.WebGLRenderingContext !== undefined;
-
   return (
     <motion.div
       ref={itemRef}
-      className="absolute inset-0 flex flex-col items-center justify-center perspective-[1000px]"
-      style={
-        shouldReduceMotion
-          ? { opacity: isVisible ? 1 : 0 }
-          : { opacity, scale, y }
-      }
+      className="flex flex-col items-center justify-center"
       initial="hidden"
-      animate={isVisible ? 'visible' : 'hidden'}
+      animate={isInView ? 'visible' : 'hidden'}
       variants={animationVariants}
     >
-      <div className="relative w-full max-w-5xl aspect-[16/10] mb-12">
+      <div className="relative w-full max-w-4xl aspect-[16/9] mb-8">
         <motion.div
-          className="absolute -inset-8 bg-gradient-to-br from-blue-500/30 via-cyan-400/20 to-blue-600/30 rounded-[4rem] blur-[100px]"
-          style={{ rotateY: shouldReduceMotion ? 0 : rotateY }}
+          className="absolute -inset-4 bg-gradient-to-br from-blue-500/20 via-cyan-400/10 to-blue-600/20 rounded-3xl blur-[60px]"
           animate={{
-            opacity: isVisible ? [0.4, 0.7, 0.4] : 0,
-            scale: isVisible ? [1, 1.08, 1] : 1
+            opacity: isInView ? [0.3, 0.5, 0.3] : 0,
           }}
           transition={{
-            duration: 4.5,
+            duration: 3,
             repeat: Infinity,
             ease: 'easeInOut'
           }}
         />
 
-        <motion.div
-          className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent rounded-[2.5rem]"
-          style={{ opacity }}
-        />
-
-        <motion.div
-          className="relative z-10 w-full h-full rounded-[2.5rem] overflow-hidden shadow-[0_30px_100px_-20px_rgba(0,0,0,0.7)] ring-1 ring-white/10"
+        <div
+          className="relative z-10 w-full h-full rounded-2xl overflow-hidden shadow-[0_20px_60px_-15px_rgba(0,0,0,0.6)] ring-1 ring-white/5"
           role="img"
           aria-label={item.altText}
           tabIndex={0}
-          style={{ rotateY: shouldReduceMotion ? 0 : rotateY }}
-          whileHover={{ scale: 1.02 }}
-          transition={{ duration: 0.3 }}
         >
-          {item.use3D && supports3D && item.model3D ? (
-            <Suspense
-              fallback={
-                <ImageFallback
-                  image={item.image}
-                  imageLQIP={item.imageLQIP}
-                  altText={item.altText}
-                />
-              }
-            >
-              <Engine3DModel modelPath={item.model3D} />
-            </Suspense>
-          ) : (
-            <ImageFallback
-              image={item.image}
-              imageLQIP={item.imageLQIP}
-              altText={item.altText}
-            />
-          )}
-        </motion.div>
+          <ImageFallback
+            image={item.image}
+            imageLQIP={item.imageLQIP}
+            altText={item.altText}
+          />
+        </div>
       </div>
 
       <motion.div
-        className="text-center max-w-3xl px-6"
+        className="text-center max-w-2xl px-6"
         initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 20 }}
-        transition={{ delay: shouldReduceMotion ? 0 : 0.35, duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
+        animate={{ opacity: isInView ? 1 : 0, y: isInView ? 0 : 20 }}
+        transition={{
+          delay: shouldReduceMotion ? 0 : index * staggerDelay + 0.3,
+          duration: 0.6,
+          ease: [0.25, 0.1, 0.25, 1]
+        }}
       >
-        <h2 className="text-5xl md:text-7xl font-semibold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-b from-white via-white to-gray-400">
+        <h2 className="text-4xl md:text-6xl font-semibold tracking-tight mb-4 bg-clip-text text-transparent bg-gradient-to-b from-white to-gray-400">
           {item.title}
         </h2>
-        <p className="text-xl md:text-2xl text-gray-400 leading-relaxed font-light">
+        <p className="text-lg md:text-xl text-gray-400 leading-relaxed">
           {item.description}
         </p>
       </motion.div>
@@ -255,9 +152,9 @@ function ImageFallback({ image, imageLQIP, altText }: ImageFallbackProps) {
 
   if (!image && !imageLQIP) {
     return (
-      <div className="w-full h-full bg-gradient-to-br from-gray-900 via-gray-950 to-black flex items-center justify-center">
+      <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
         <svg
-          className="w-32 h-32 text-gray-700"
+          className="w-24 h-24 text-gray-600"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -274,17 +171,13 @@ function ImageFallback({ image, imageLQIP, altText }: ImageFallbackProps) {
   }
 
   return (
-    <motion.img
+    <img
       src={currentSrc}
       alt={altText}
-      className="w-full h-full object-cover"
+      className="w-full h-full object-cover transition-all duration-700"
       style={{
-        filter: imageLoaded ? 'blur(0) brightness(1.05) contrast(1.05)' : 'blur(20px)',
-        transform: imageLoaded ? 'scale(1)' : 'scale(1.05)'
+        filter: imageLoaded ? 'blur(0) brightness(1.05)' : 'blur(20px)',
       }}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.8 }}
       loading="lazy"
     />
   );

@@ -106,9 +106,7 @@ export default function Hero() {
       <div id="engines">
         <EngineScrollHero
           items={engineItems}
-          autoplay={true}
-          staggerDelay={0.5}
-          itemPadding="12rem"
+          staggerDelay={0.3}
         />
       </div>
     </>
