@@ -1,65 +1,116 @@
 import { motion } from 'framer-motion';
+import EngineScrollHero, { EngineItem } from './EngineScrollHero';
+
+const engineItems: EngineItem[] = [
+  {
+    id: 'v8-engine',
+    title: 'V8 Power',
+    description: 'Experience the raw power and precision of modern V8 engineering',
+    image: 'https://images.pexels.com/photos/1409999/pexels-photo-1409999.jpeg?auto=compress&cs=tinysrgb&w=1200',
+    imageLQIP: 'https://images.pexels.com/photos/1409999/pexels-photo-1409999.jpeg?auto=compress&cs=tinysrgb&w=50',
+    altText: 'High-performance V8 engine with chrome finish',
+    use3D: false
+  },
+  {
+    id: 'turbo-engine',
+    title: 'Turbocharged Performance',
+    description: 'Advanced turbocharging technology delivering maximum efficiency',
+    image: 'https://images.pexels.com/photos/3802508/pexels-photo-3802508.jpeg?auto=compress&cs=tinysrgb&w=1200',
+    imageLQIP: 'https://images.pexels.com/photos/3802508/pexels-photo-3802508.jpeg?auto=compress&cs=tinysrgb&w=50',
+    altText: 'Turbocharged engine with intercooler system',
+    use3D: false
+  },
+  {
+    id: 'electric-motor',
+    title: 'Electric Future',
+    description: 'Silent power meets instant torque in next-gen electric motors',
+    image: 'https://images.pexels.com/photos/6873875/pexels-photo-6873875.jpeg?auto=compress&cs=tinysrgb&w=1200',
+    imageLQIP: 'https://images.pexels.com/photos/6873875/pexels-photo-6873875.jpeg?auto=compress&cs=tinysrgb&w=50',
+    altText: 'Modern electric vehicle motor assembly',
+    use3D: false
+  },
+  {
+    id: 'hybrid-system',
+    title: 'Hybrid Innovation',
+    description: 'The perfect balance of combustion and electric power',
+    image: 'https://images.pexels.com/photos/4488666/pexels-photo-4488666.jpeg?auto=compress&cs=tinysrgb&w=1200',
+    imageLQIP: 'https://images.pexels.com/photos/4488666/pexels-photo-4488666.jpeg?auto=compress&cs=tinysrgb&w=50',
+    altText: 'Hybrid engine system showing electric and combustion components',
+    use3D: false
+  }
+];
 
 export default function Hero() {
   return (
-    <section className="relative min-h-screen flex items-center justify-center bg-white overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-b from-gray-50 to-white"></div>
+    <>
+      <section className="relative min-h-screen flex items-center justify-center bg-white overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-gray-50 to-white"></div>
 
-      <div className="relative z-10 text-center px-6 pt-24">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, ease: [0.25, 0.1, 0.25, 1] }}
-        >
-          <h1 className="text-5xl md:text-7xl font-semibold tracking-tight text-gray-900 mb-4">
-            Vehicle Intelligence,
-          </h1>
-          <h1 className="text-5xl md:text-7xl font-semibold tracking-tight text-gray-900 mb-8">
-            Reimagined.
-          </h1>
-        </motion.div>
-
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-          className="text-xl md:text-2xl text-gray-600 mb-6 font-normal"
-        >
-          Instant vehicle insights at your fingertips.
-        </motion.p>
-
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-          className="text-base md:text-lg text-gray-500 mb-12"
-        >
-          Decode any VIN or license plate in seconds.
-        </motion.p>
-
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, delay: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
-        >
-          <a
-            href="#lookup"
-            className="inline-block text-blue-600 text-lg hover:underline font-normal"
+        <div className="relative z-10 text-center px-6 pt-24">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, ease: [0.25, 0.1, 0.25, 1] }}
           >
-            Start lookup →
-          </a>
-        </motion.div>
-      </div>
+            <h1 className="text-5xl md:text-7xl font-semibold tracking-tight text-gray-900 mb-4">
+              Vehicle Intelligence,
+            </h1>
+            <h1 className="text-5xl md:text-7xl font-semibold tracking-tight text-gray-900 mb-8">
+              Reimagined.
+            </h1>
+          </motion.div>
 
-      <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2">
-        <motion.div
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-          className="w-6 h-10 border-2 border-gray-300 rounded-full flex items-start justify-center p-2"
-        >
-          <div className="w-1 h-2 bg-gray-400 rounded-full"></div>
-        </motion.div>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+            className="text-xl md:text-2xl text-gray-600 mb-6 font-normal"
+          >
+            Instant vehicle insights at your fingertips.
+          </motion.p>
+
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+            className="text-base md:text-lg text-gray-500 mb-12"
+          >
+            Decode any VIN or license plate in seconds.
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, delay: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+          >
+            <a
+              href="#engines"
+              className="inline-block text-blue-600 text-lg hover:underline font-normal"
+            >
+              Explore engines →
+            </a>
+          </motion.div>
+        </div>
+
+        <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2">
+          <motion.div
+            animate={{ y: [0, 10, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+            className="w-6 h-10 border-2 border-gray-300 rounded-full flex items-start justify-center p-2"
+          >
+            <div className="w-1 h-2 bg-gray-400 rounded-full"></div>
+          </motion.div>
+        </div>
+      </section>
+
+      <div id="engines">
+        <EngineScrollHero
+          items={engineItems}
+          autoplay={true}
+          staggerDelay={0.5}
+          itemPadding="12rem"
+        />
       </div>
-    </section>
+    </>
   );
 }
