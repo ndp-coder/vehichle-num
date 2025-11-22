@@ -184,7 +184,7 @@ Deno.serve(async (req: Request) => {
 
     const { access_token } = await tokenResponse.json();
 
-    const appendUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Table1!A:G:append?valueInputOption=USER_ENTERED`;
+    const appendUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Sheet1!A:G:append?valueInputOption=USER_ENTERED`;
 
     const response = await fetch(appendUrl, {
       method: "POST",
