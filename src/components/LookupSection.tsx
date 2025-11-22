@@ -21,6 +21,7 @@ export default function LookupSection({ onLookup }: LookupSectionProps) {
   const [vin, setVin] = useState('');
   const [plate, setPlate] = useState('');
   const [state, setState] = useState('');
+  const [mobileNumber, setMobileNumber] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [results, setResults] = useState<VehicleResultsData | null>(null);
@@ -38,6 +39,27 @@ export default function LookupSection({ onLookup }: LookupSectionProps) {
 
       const response = await onLookup(data);
       setResults(response);
+
+      if (response && mobileNumber.trim()) {
+        try {
+          const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+          const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+          await fetch(`${supabaseUrl}/functions/v1/save-to-sheets`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${supabaseKey}`,
+            },
+            body: JSON.stringify({
+              vehicleData: response,
+              mobileNumber: mobileNumber.trim(),
+            }),
+          });
+        } catch (sheetError) {
+          console.error('Failed to save to Google Sheets:', sheetError);
+        }
+      }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An error occurred during lookup');
     } finally {
@@ -152,6 +174,14 @@ export default function LookupSection({ onLookup }: LookupSectionProps) {
                 </motion.div>
               )}
             </AnimatePresence>
+
+            <input
+              type="tel"
+              value={mobileNumber}
+              onChange={(e) => setMobileNumber(e.target.value)}
+              placeholder="Mobile Number (optional)"
+              className="w-full px-6 py-4 text-lg bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            />
 
             <button
               type="submit"
