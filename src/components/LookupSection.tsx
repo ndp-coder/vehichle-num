@@ -16,6 +16,36 @@ const US_STATES = [
   'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
 ];
 
+const TOP_MAKES = [
+  'Toyota', 'Ford', 'Chevrolet', 'Honda', 'Nissan',
+  'Jeep', 'Ram', 'GMC', 'Hyundai', 'Subaru',
+  'Kia', 'Mazda', 'Volkswagen', 'BMW', 'Mercedes-Benz',
+  'Audi', 'Lexus', 'Tesla', 'Volvo', 'Dodge'
+];
+
+const ENGINE_TYPES = [
+  '1.5L 4-Cylinder',
+  '2.0L 4-Cylinder',
+  '2.5L 4-Cylinder',
+  '3.0L V6',
+  '3.5L V6',
+  '3.6L V6',
+  '5.0L V8',
+  '5.7L V8',
+  '6.2L V8',
+  'Electric Motor',
+  'Hybrid',
+];
+
+const generateYears = () => {
+  const currentYear = new Date().getFullYear();
+  const years = [];
+  for (let year = currentYear; year >= 1990; year--) {
+    years.push(year.toString());
+  }
+  return years;
+};
+
 export default function LookupSection({ onLookup }: LookupSectionProps) {
   const [lookupMethod, setLookupMethod] = useState<'quick' | 'detailed'>('quick');
   const [lookupType, setLookupType] = useState<'vin' | 'plate'>('vin');
@@ -29,6 +59,7 @@ export default function LookupSection({ onLookup }: LookupSectionProps) {
   const [partName, setPartName] = useState('');
 
   const [make, setMake] = useState('');
+  const [customMake, setCustomMake] = useState('');
   const [model, setModel] = useState('');
   const [year, setYear] = useState('');
   const [engine, setEngine] = useState('');
@@ -86,7 +117,7 @@ export default function LookupSection({ onLookup }: LookupSectionProps) {
         }
       } else {
         const detailedVehicleData = {
-          make: make.trim(),
+          make: make === 'Other' ? customMake.trim() : make.trim(),
           model: model.trim(),
           year: year.trim(),
           engine: engine.trim(),
@@ -133,7 +164,14 @@ export default function LookupSection({ onLookup }: LookupSectionProps) {
     ? vin.trim().length === 17
     : plate.trim().length > 0 && state.length > 0;
 
-  const isDetailedLookupValid = make.trim() && model.trim() && year.trim();
+  const isDetailedLookupValid =
+    (make === 'Other' ? customMake.trim() : make.trim()) &&
+    model.trim() &&
+    year.trim() &&
+    engine.trim() &&
+    fuel.trim() &&
+    transmission.trim() &&
+    bodyStyle.trim();
 
   const isFormValid = name.trim() && mobileNumber.trim() && partName.trim() &&
     (lookupMethod === 'quick' ? isQuickLookupValid : isDetailedLookupValid);
@@ -340,14 +378,35 @@ export default function LookupSection({ onLookup }: LookupSectionProps) {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Make <span className="text-red-500">*</span>
                       </label>
-                      <input
-                        type="text"
+                      <select
                         value={make}
-                        onChange={(e) => setMake(e.target.value)}
-                        placeholder="e.g., Toyota, Ford"
+                        onChange={(e) => {
+                          setMake(e.target.value);
+                          if (e.target.value !== 'Other') {
+                            setCustomMake('');
+                          }
+                        }}
                         required
                         className="w-full px-4 py-3 text-base bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                      />
+                      >
+                        <option value="">Select Make</option>
+                        {TOP_MAKES.map((m) => (
+                          <option key={m} value={m}>
+                            {m}
+                          </option>
+                        ))}
+                        <option value="Other">Other</option>
+                      </select>
+                      {make === 'Other' && (
+                        <input
+                          type="text"
+                          value={customMake}
+                          onChange={(e) => setCustomMake(e.target.value)}
+                          placeholder="Enter make name"
+                          required
+                          className="w-full mt-2 px-4 py-3 text-base bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                        />
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -366,34 +425,46 @@ export default function LookupSection({ onLookup }: LookupSectionProps) {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Year <span className="text-red-500">*</span>
                       </label>
-                      <input
-                        type="text"
+                      <select
                         value={year}
                         onChange={(e) => setYear(e.target.value)}
-                        placeholder="e.g., 2020"
                         required
                         className="w-full px-4 py-3 text-base bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                      />
+                      >
+                        <option value="">Select Year</option>
+                        {generateYears().map((y) => (
+                          <option key={y} value={y}>
+                            {y}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Engine
+                        Engine <span className="text-red-500">*</span>
                       </label>
-                      <input
-                        type="text"
+                      <select
                         value={engine}
                         onChange={(e) => setEngine(e.target.value)}
-                        placeholder="e.g., 2.5L 4-Cylinder"
+                        required
                         className="w-full px-4 py-3 text-base bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                      />
+                      >
+                        <option value="">Select Engine</option>
+                        {ENGINE_TYPES.map((e) => (
+                          <option key={e} value={e}>
+                            {e}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Fuel Type
+                        Fuel Type <span className="text-red-500">*</span>
                       </label>
                       <select
                         value={fuel}
                         onChange={(e) => setFuel(e.target.value)}
+                        required
                         className="w-full px-4 py-3 text-base bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                       >
                         <option value="">Select Fuel Type</option>
@@ -406,11 +477,12 @@ export default function LookupSection({ onLookup }: LookupSectionProps) {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Transmission
+                        Transmission <span className="text-red-500">*</span>
                       </label>
                       <select
                         value={transmission}
                         onChange={(e) => setTransmission(e.target.value)}
+                        required
                         className="w-full px-4 py-3 text-base bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                       >
                         <option value="">Select Transmission</option>
@@ -422,11 +494,12 @@ export default function LookupSection({ onLookup }: LookupSectionProps) {
                     </div>
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Body Style
+                        Body Style <span className="text-red-500">*</span>
                       </label>
                       <select
                         value={bodyStyle}
                         onChange={(e) => setBodyStyle(e.target.value)}
+                        required
                         className="w-full px-4 py-3 text-base bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                       >
                         <option value="">Select Body Style</option>
