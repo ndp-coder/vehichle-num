@@ -48,12 +48,11 @@ interface HistoryData {
 }
 
 interface RequestBody {
-  vehicleData: {
-    vehicle?: VehicleData;
-    plate?: PlateData;
-    history?: HistoryData;
-  };
+  vehicleData: any;
+  name?: string;
   mobileNumber: string;
+  partName?: string;
+  lookupType?: string;
 }
 
 Deno.serve(async (req: Request) => {
@@ -65,7 +64,7 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { vehicleData, mobileNumber }: RequestBody = await req.json();
+    const { vehicleData, name, mobileNumber, partName, lookupType }: RequestBody = await req.json();
 
     const googleServiceAccountJson = Deno.env.get("GOOGLE_SERVICE_ACCOUNT_JSON");
     const spreadsheetId = Deno.env.get("GOOGLE_SHEETS_SPREADSHEET_ID");
@@ -76,7 +75,7 @@ Deno.serve(async (req: Request) => {
         hasSpreadsheetId: !!spreadsheetId,
       });
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           error: "Google Sheets configuration missing",
           details: "Please configure GOOGLE_SERVICE_ACCOUNT_JSON and GOOGLE_SHEETS_SPREADSHEET_ID secrets"
         }),
@@ -87,32 +86,35 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const vehicle = vehicleData.vehicle;
-    const history = vehicleData.history;
-    const plate = vehicleData.plate;
+    const vehicle = vehicleData?.vehicle || vehicleData?.vehicleInfo || vehicleData;
+    const history = vehicleData?.history;
+    const plate = vehicleData?.plate;
 
-    const name = plate?.owner || "";
+    const customerName = name || plate?.owner || "";
     const vin = vehicle?.vin || plate?.vin || "";
     const make = vehicle?.make || plate?.make || "";
     const model = vehicle?.model || plate?.model || "";
     const year = vehicle?.year || plate?.year || "";
-    const bodyClass = vehicle?.bodyClass || "";
+    const bodyClass = vehicle?.bodyClass || vehicle?.bodyStyle || "";
     const vehicleType = vehicle?.vehicleType || "";
     const manufacturer = vehicle?.manufacturer || "";
-    const fuelType = vehicle?.fuelType || "";
+    const fuelType = vehicle?.fuelType || vehicle?.fuel || "";
     const engineCylinders = vehicle?.engineCylinders || "";
     const displacement = vehicle?.displacement || "";
+    const vehicleEngine = vehicle?.engine || "";
     const transmission = vehicle?.transmission || "";
     const driveType = vehicle?.driveType || "";
 
-    const accidents = history?.accidents?.reported?.toString() || "0";
-    const ownership = history?.ownershipHistory?.owners?.toString() || "N/A";
-    const odometer = history?.odometer?.lastReading?.toString() || "N/A";
-    const serviceRecords = history?.serviceRecords?.count?.toString() || "0";
-    const recalls = history?.recalls?.open?.toString() || "0";
+    const accidents = history?.accidents?.reported?.toString() || "";
+    const ownership = history?.ownershipHistory?.owners?.toString() || "";
+    const odometer = history?.odometer?.lastReading?.toString() || "";
+    const serviceRecords = history?.serviceRecords?.count?.toString() || "";
+    const recalls = history?.recalls?.open?.toString() || "";
 
     const row = [
-      name,
+      customerName,
+      partName || "",
+      lookupType || "",
       vin,
       make,
       model,
@@ -123,6 +125,7 @@ Deno.serve(async (req: Request) => {
       fuelType,
       engineCylinders,
       displacement,
+      vehicleEngine,
       transmission,
       driveType,
       accidents,
@@ -210,7 +213,7 @@ Deno.serve(async (req: Request) => {
 
     const { access_token } = await tokenResponse.json();
 
-    const appendUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Sheet1!A:S:append?valueInputOption=USER_ENTERED`;
+    const appendUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Sheet1!A:V:append?valueInputOption=USER_ENTERED`;
 
     const response = await fetch(appendUrl, {
       method: "POST",
