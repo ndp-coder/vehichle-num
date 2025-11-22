@@ -33,7 +33,7 @@ const engineItems: EngineItem[] = [
     id: 'performance-engine',
     title: 'High Performance',
     description: 'Built for speed, designed for reliability',
-    image: 'https://images.pexels.com/photos/1092364/pexels-photo-1092364.jpeg?auto=compress&cs=tinysrgb&w=1600',
+    image: 'https://enchanting-plum-3rnpyxk0yu.edgeone.app/Generated%20Image%20November%2022,%202025%20-%2012_23PM.png',
     imageLQIP: 'https://images.pexels.com/photos/1092364/pexels-photo-1092364.jpeg?auto=compress&cs=tinysrgb&w=50',
     altText: 'Powerful racing engine with red cover showing peak performance engineering',
     use3D: false
