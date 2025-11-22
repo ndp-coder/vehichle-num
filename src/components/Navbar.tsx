@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search } from 'lucide-react';
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -13,6 +12,13 @@ export default function Navbar() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   return (
     <motion.nav
@@ -29,28 +35,34 @@ export default function Navbar() {
     >
       <div className="max-w-screen-xl mx-auto px-6 h-11 flex items-center justify-between">
         <div className="flex items-center space-x-10">
-          <motion.div
-            className="text-xl font-semibold tracking-tight"
+          <motion.button
+            onClick={() => scrollToSection('hero')}
+            className="text-xl font-semibold tracking-tight cursor-pointer"
             whileHover={{ scale: 1.02 }}
           >
             VehicleIQ
-          </motion.div>
+          </motion.button>
 
           <div className="hidden md:flex items-center space-x-8 text-xs">
-            <a href="#" className="text-gray-700 hover:text-black transition-colors duration-200">
+            <button
+              onClick={() => scrollToSection('lookup')}
+              className="text-gray-700 hover:text-black transition-colors duration-200"
+            >
               Lookup
-            </a>
-            <a href="#" className="text-gray-700 hover:text-black transition-colors duration-200">
-              About
-            </a>
-            <a href="#" className="text-gray-700 hover:text-black transition-colors duration-200">
-              Support
-            </a>
+            </button>
+            <button
+              onClick={() => scrollToSection('engines')}
+              className="text-gray-700 hover:text-black transition-colors duration-200"
+            >
+              Engines
+            </button>
+            <button
+              onClick={() => scrollToSection('footer')}
+              className="text-gray-700 hover:text-black transition-colors duration-200"
+            >
+              Contact
+            </button>
           </div>
-        </div>
-
-        <div className="flex items-center space-x-6">
-          <Search className="w-4 h-4 text-gray-700 cursor-pointer hover:text-black transition-colors" />
         </div>
       </div>
     </motion.nav>
