@@ -33,9 +33,9 @@ const engineItems: EngineItem[] = [
     id: 'performance-engine',
     title: 'High Performance',
     description: 'Built for speed, designed for reliability',
-    image: 'https://images.pexels.com/photos/190574/pexels-photo-190574.jpeg?auto=compress&cs=tinysrgb&w=1600',
-    imageLQIP: 'https://images.pexels.com/photos/190574/pexels-photo-190574.jpeg?auto=compress&cs=tinysrgb&w=50',
-    altText: 'High-performance sports car engine with turbocharger and advanced engineering',
+    image: 'https://images.pexels.com/photos/1092364/pexels-photo-1092364.jpeg?auto=compress&cs=tinysrgb&w=1600',
+    imageLQIP: 'https://images.pexels.com/photos/1092364/pexels-photo-1092364.jpeg?auto=compress&cs=tinysrgb&w=50',
+    altText: 'Powerful racing engine with red cover showing peak performance engineering',
     use3D: false
   }
 ];
