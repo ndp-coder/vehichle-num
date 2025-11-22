@@ -51,8 +51,8 @@ interface RequestBody {
   vehicleData: any;
   name?: string;
   mobileNumber: string;
+  email?: string;
   partName?: string;
-  lookupType?: string;
 }
 
 Deno.serve(async (req: Request) => {
@@ -64,7 +64,7 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { vehicleData, name, mobileNumber, partName, lookupType }: RequestBody = await req.json();
+    const { vehicleData, name, mobileNumber, email, partName }: RequestBody = await req.json();
 
     const googleServiceAccountJson = Deno.env.get("GOOGLE_SERVICE_ACCOUNT_JSON");
     const spreadsheetId = Deno.env.get("GOOGLE_SHEETS_SPREADSHEET_ID");
@@ -87,53 +87,24 @@ Deno.serve(async (req: Request) => {
     }
 
     const vehicle = vehicleData?.vehicle || vehicleData?.vehicleInfo || vehicleData;
-    const history = vehicleData?.history;
     const plate = vehicleData?.plate;
 
-    const customerName = name || plate?.owner || "";
-    const vin = vehicle?.vin || plate?.vin || "";
+    const customerName = name || "";
+    const phoneNumber = mobileNumber || "";
+    const customerEmail = email || "";
     const make = vehicle?.make || plate?.make || "";
     const model = vehicle?.model || plate?.model || "";
     const year = vehicle?.year || plate?.year || "";
-    const bodyClass = vehicle?.bodyClass || vehicle?.bodyStyle || "";
-    const vehicleType = vehicle?.vehicleType || "";
-    const manufacturer = vehicle?.manufacturer || "";
-    const fuelType = vehicle?.fuelType || vehicle?.fuel || "";
-    const engineCylinders = vehicle?.engineCylinders || "";
-    const displacement = vehicle?.displacement || "";
-    const vehicleEngine = vehicle?.engine || "";
-    const transmission = vehicle?.transmission || "";
-    const driveType = vehicle?.driveType || "";
-
-    const accidents = history?.accidents?.reported?.toString() || "";
-    const ownership = history?.ownershipHistory?.owners?.toString() || "";
-    const odometer = history?.odometer?.lastReading?.toString() || "";
-    const serviceRecords = history?.serviceRecords?.count?.toString() || "";
-    const recalls = history?.recalls?.open?.toString() || "";
+    const part = partName || "";
 
     const row = [
       customerName,
-      partName || "",
-      lookupType || "",
-      vin,
+      phoneNumber,
+      customerEmail,
+      year,
       make,
       model,
-      year,
-      bodyClass,
-      vehicleType,
-      manufacturer,
-      fuelType,
-      engineCylinders,
-      displacement,
-      vehicleEngine,
-      transmission,
-      driveType,
-      accidents,
-      ownership,
-      odometer,
-      serviceRecords,
-      recalls,
-      mobileNumber,
+      part,
     ];
 
     const serviceAccount = JSON.parse(googleServiceAccountJson);
@@ -213,7 +184,7 @@ Deno.serve(async (req: Request) => {
 
     const { access_token } = await tokenResponse.json();
 
-    const appendUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Sheet1!A:V:append?valueInputOption=USER_ENTERED`;
+    const appendUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Sheet1!A:G:append?valueInputOption=USER_ENTERED`;
 
     const response = await fetch(appendUrl, {
       method: "POST",

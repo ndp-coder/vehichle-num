@@ -81,6 +81,7 @@ export default function LookupSection({ onLookup }: LookupSectionProps) {
 
   const [name, setName] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
+  const [email, setEmail] = useState('');
   const [partName, setPartName] = useState('');
 
   const [make, setMake] = useState('');
@@ -132,8 +133,8 @@ export default function LookupSection({ onLookup }: LookupSectionProps) {
                 vehicleData: response,
                 name: name.trim(),
                 mobileNumber: mobileNumber.trim(),
+                email: email.trim(),
                 partName: partName.trim(),
-                lookupType: lookupType === 'vin' ? 'VIN' : 'License Plate',
               }),
             });
           } catch (sheetError) {
@@ -170,8 +171,8 @@ export default function LookupSection({ onLookup }: LookupSectionProps) {
               vehicleData: detailedVehicleData,
               name: name.trim(),
               mobileNumber: mobileNumber.trim(),
+              email: email.trim(),
               partName: partName.trim(),
-              lookupType: 'Detailed Selection',
             }),
           });
         } catch (sheetError) {
@@ -252,7 +253,7 @@ export default function LookupSection({ onLookup }: LookupSectionProps) {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pb-6 border-b border-gray-200">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-6 border-b border-gray-200">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Name <span className="text-red-500">*</span>
@@ -276,6 +277,18 @@ export default function LookupSection({ onLookup }: LookupSectionProps) {
                   onChange={(e) => setMobileNumber(e.target.value)}
                   placeholder="(555) 123-4567"
                   required
+                  className="w-full px-4 py-3 text-base bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="your.email@example.com"
                   className="w-full px-4 py-3 text-base bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                 />
               </div>
