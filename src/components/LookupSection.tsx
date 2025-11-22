@@ -119,7 +119,35 @@ export default function LookupSection({ onLookup }: LookupSectionProps) {
         setResults(response);
 
         if (response) {
-          console.log('Vehicle lookup successful. Data can be saved to Google Sheets via the edge function when configured.');
+          try {
+            const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+            const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+            const sheetsResponse = await fetch(`${supabaseUrl}/functions/v1/save-to-sheets`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${supabaseKey}`,
+              },
+              body: JSON.stringify({
+                vehicleData: response,
+                name: name.trim(),
+                mobileNumber: mobileNumber.trim(),
+                email: email.trim(),
+                partName: partName.trim(),
+              }),
+            });
+
+            const sheetsData = await sheetsResponse.json();
+
+            if (sheetsData.success) {
+              console.log('Data successfully saved to Google Sheets:', sheetsData);
+            } else {
+              console.error('Failed to save to Google Sheets:', sheetsData);
+            }
+          } catch (sheetError) {
+            console.error('Error saving to Google Sheets:', sheetError);
+          }
         }
       } else {
         const detailedVehicleData = {
@@ -137,7 +165,35 @@ export default function LookupSection({ onLookup }: LookupSectionProps) {
           message: 'Vehicle information submitted successfully'
         } as VehicleResultsData);
 
-        console.log('Detailed vehicle data submitted. Can be saved to Google Sheets via the edge function when configured.');
+        try {
+          const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+          const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+          const sheetsResponse = await fetch(`${supabaseUrl}/functions/v1/save-to-sheets`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${supabaseKey}`,
+            },
+            body: JSON.stringify({
+              vehicleData: detailedVehicleData,
+              name: name.trim(),
+              mobileNumber: mobileNumber.trim(),
+              email: email.trim(),
+              partName: partName.trim(),
+            }),
+          });
+
+          const sheetsData = await sheetsResponse.json();
+
+          if (sheetsData.success) {
+            console.log('Data successfully saved to Google Sheets:', sheetsData);
+          } else {
+            console.error('Failed to save to Google Sheets:', sheetsData);
+          }
+        } catch (sheetError) {
+          console.error('Error saving to Google Sheets:', sheetError);
+        }
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An error occurred during lookup');
