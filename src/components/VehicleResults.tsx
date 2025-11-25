@@ -79,8 +79,8 @@ export default function VehicleResults({ data }: VehicleResultsProps) {
           </div>
 
           {data.plate.note && (
-            <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-2xl">
-              <p className="text-sm text-yellow-800">{data.plate.note}</p>
+            <div className="mt-6 p-4 bg-yellow-900/30 border border-yellow-500/50 rounded-2xl backdrop-blur-sm">
+              <p className="text-sm text-yellow-300">{data.plate.note}</p>
             </div>
           )}
         </motion.div>
@@ -141,8 +141,8 @@ export default function VehicleResults({ data }: VehicleResultsProps) {
             </div>
 
             {data.history.note && (
-              <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-2xl">
-                <p className="text-sm text-yellow-800">{data.history.note}</p>
+              <div className="mt-6 p-4 bg-yellow-900/30 border border-yellow-500/50 rounded-2xl backdrop-blur-sm">
+                <p className="text-sm text-yellow-300">{data.history.note}</p>
               </div>
             )}
           </div>

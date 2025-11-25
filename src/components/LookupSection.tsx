@@ -244,7 +244,7 @@ export default function LookupSection({ onLookup }: LookupSectionProps) {
           className="bg-white rounded-3xl p-8 md:p-12 shadow-xl border border-gray-200"
         >
           <div className="flex justify-center mb-8">
-            <div className="inline-flex rounded-full bg-gray-100 p-1">
+            <div className="inline-flex rounded-full bg-gray-800/80 p-1 border border-cyan-500/30">
               <button
                 onClick={() => setLookupMethod('quick')}
                 className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
@@ -334,7 +334,7 @@ export default function LookupSection({ onLookup }: LookupSectionProps) {
                   className="space-y-6"
                 >
                   <div className="flex justify-center">
-                    <div className="inline-flex rounded-full bg-gray-100 p-1">
+                    <div className="inline-flex rounded-full bg-gray-800/80 p-1 border border-cyan-500/30">
                       <button
                         type="button"
                         onClick={() => setLookupType('vin')}
