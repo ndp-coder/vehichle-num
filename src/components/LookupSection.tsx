@@ -241,7 +241,7 @@ export default function LookupSection({ onLookup }: LookupSectionProps) {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.8, delay: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-          className="bg-white rounded-3xl p-8 md:p-12 shadow-xl border border-gray-200"
+          className="bg-gray-900/50 backdrop-blur-sm rounded-3xl p-8 md:p-12 shadow-2xl border border-cyan-500/30 shadow-cyan-500/20"
         >
           <div className="flex justify-center mb-8">
             <div className="inline-flex rounded-full bg-gray-800/80 p-1 border border-cyan-500/30">
@@ -249,8 +249,8 @@ export default function LookupSection({ onLookup }: LookupSectionProps) {
                 onClick={() => setLookupMethod('quick')}
                 className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
                   lookupMethod === 'quick'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-gradient-to-r from-cyan-500 to-pink-500 text-white shadow-lg shadow-cyan-500/50'
+                    : 'text-gray-300 hover:text-white'
                 }`}
               >
                 Quick Lookup
@@ -259,8 +259,8 @@ export default function LookupSection({ onLookup }: LookupSectionProps) {
                 onClick={() => setLookupMethod('detailed')}
                 className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
                   lookupMethod === 'detailed'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-gradient-to-r from-cyan-500 to-pink-500 text-white shadow-lg shadow-cyan-500/50'
+                    : 'text-gray-300 hover:text-white'
                 }`}
               >
                 Detailed Selection
@@ -269,10 +269,10 @@ export default function LookupSection({ onLookup }: LookupSectionProps) {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-6 border-b border-gray-200">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-6 border-b border-cyan-500/30">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Name <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Name <span className="text-pink-400">*</span>
                 </label>
                 <input
                   type="text"
@@ -280,12 +280,12 @@ export default function LookupSection({ onLookup }: LookupSectionProps) {
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Your full name"
                   required
-                  className="w-full px-4 py-3 text-base bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  className="w-full px-4 py-3 text-base bg-gray-800/50 border border-cyan-500/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all duration-200 text-white placeholder-gray-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Mobile Number <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Mobile Number <span className="text-pink-400">*</span>
                 </label>
                 <input
                   type="tel"
@@ -293,11 +293,11 @@ export default function LookupSection({ onLookup }: LookupSectionProps) {
                   onChange={(e) => setMobileNumber(e.target.value)}
                   placeholder="(555) 123-4567"
                   required
-                  className="w-full px-4 py-3 text-base bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  className="w-full px-4 py-3 text-base bg-gray-800/50 border border-cyan-500/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all duration-200 text-white placeholder-gray-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Email
                 </label>
                 <input
@@ -305,12 +305,12 @@ export default function LookupSection({ onLookup }: LookupSectionProps) {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="your.email@example.com"
-                  className="w-full px-4 py-3 text-base bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  className="w-full px-4 py-3 text-base bg-gray-800/50 border border-cyan-500/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all duration-200 text-white placeholder-gray-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Part Name <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Part Name <span className="text-pink-400">*</span>
                 </label>
                 <input
                   type="text"
@@ -318,7 +318,7 @@ export default function LookupSection({ onLookup }: LookupSectionProps) {
                   onChange={(e) => setPartName(e.target.value)}
                   placeholder="e.g., Brake Pads"
                   required
-                  className="w-full px-4 py-3 text-base bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  className="w-full px-4 py-3 text-base bg-gray-800/50 border border-cyan-500/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all duration-200 text-white placeholder-gray-500"
                 />
               </div>
             </div>
